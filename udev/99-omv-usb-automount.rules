@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", KERNEL=="sd*[0-9]", ENV{ID_BUS}=="usb", RUN+="/usr/local/bin/queue_usb_event.sh add /dev/%k"
+ACTION=="remove", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", KERNEL=="sd*[0-9]", ENV{ID_BUS}=="usb", RUN+="/usr/local/bin/queue_usb_event.sh remove /dev/%k"
