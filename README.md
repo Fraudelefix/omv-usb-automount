@@ -6,7 +6,7 @@ This repository started as a short how-to. It now ships the scripts and udev rul
 
 ## What it does
 
-- Mounts USB partitions under `/media/usbdevices/<label-or-uuid>` when they are plugged in
+- Mounts USB filesystems under `/media/usbdevices/<label-or-uuid>` when they are plugged in
 - Unmounts them automatically when they are removed
 - Logs mount activity to `/var/log/usb_mount.log`
 - Avoids deleting unexpected paths during cleanup
@@ -49,7 +49,7 @@ After installation, unplug and reconnect a USB drive to trigger the new flow.
 
 ## How it works
 
-`udev` detects USB partition add and remove events.
+`udev` detects USB add and remove events for supported block devices.
 
 On add:
 
@@ -93,7 +93,8 @@ This removes the installed scripts and udev rule, then reloads udev rules.
 
 ## Notes
 
-- The udev rule targets USB partitions that look like `/dev/sdX1`, `/dev/sdb2`, and so on.
+- The udev rule supports both whole-disk USB filesystems such as `/dev/sdb` and partitioned devices such as `/dev/sdb1`.
+- Remove events are intentionally matched more broadly than add events because `ID_BUS` is not always preserved during unplug handling.
 - If two devices share the same label, the second one gets a suffixed mount directory such as `backup-2`.
 - This project does not create OMV shared folders automatically.
 - A future OMV plugin could provide deeper integration, but this repo is intentionally lightweight.

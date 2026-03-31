@@ -27,6 +27,7 @@ state_file_for() {
 read_mount_point() {
     local devname="$1"
     local state_file
+    local mount_point
 
     state_file="$(state_file_for "$devname")"
     if [ -f "$state_file" ]; then
@@ -34,7 +35,12 @@ read_mount_point() {
         return 0
     fi
 
-    "$FINDMNT" -rn -S "$devname" -o TARGET 2>/dev/null || true
+    mount_point="$("$FINDMNT" -rn -S "$devname" -o TARGET 2>/dev/null || true)"
+    case "$mount_point" in
+        "$MOUNT_ROOT"/*)
+            printf '%s\n' "$mount_point"
+            ;;
+    esac
 }
 
 wait_for_unmount() {
@@ -65,10 +71,18 @@ main() {
     mount_point="$(read_mount_point "$devname")"
 
     if [ -z "$mount_point" ]; then
-        log_message "No mount point recorded for $devname"
         "$RM" -f "$state_file" 2>/dev/null || true
         exit 0
     fi
+
+    case "$mount_point" in
+        "$MOUNT_ROOT"/*)
+            ;;
+        *)
+            log_message "Refusing to manage unexpected mount path $mount_point for $devname"
+            exit 1
+            ;;
+    esac
 
     log_message "Attempting to unmount $devname from $mount_point"
 
@@ -84,14 +98,7 @@ main() {
         exit 1
     fi
 
-    case "$mount_point" in
-        "$MOUNT_ROOT"/*)
-            "$RMDIR" "$mount_point" 2>/dev/null || log_message "Mount directory $mount_point was not empty, leaving it in place"
-            ;;
-        *)
-            log_message "Refusing to remove unexpected mount path $mount_point"
-            ;;
-    esac
+    "$RMDIR" "$mount_point" 2>/dev/null || log_message "Mount directory $mount_point was not empty, leaving it in place"
 
     "$RM" -f "$state_file" 2>/dev/null || true
     log_message "Unmounted $devname from $mount_point"

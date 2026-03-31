@@ -9,7 +9,7 @@ MOUNT_SCRIPT="/usr/local/bin/mount_usb.sh"
 UNMOUNT_SCRIPT="/usr/local/bin/unmount_usb.sh"
 
 usage() {
-    echo "Usage: $0 {add|remove} /dev/sdXN" >&2
+    echo "Usage: $0 {add|remove} /dev/sdX[/partition]" >&2
     exit 1
 }
 
